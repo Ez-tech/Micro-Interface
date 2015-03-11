@@ -32,36 +32,34 @@ public abstract class SerialInterface {
 
     public abstract List<String> getAvailablePorts();
 
-     public void sendMessage(Message header, int... body) {
-         sendMessage(header,toByteArray(body));
-     }
+    public void sendMessage(Message header, int... body) {
+        sendMessage(header, toByteArray(body));
+    }
+
     public void sendMessage(Message header, byte... body) {
-        if (header.bodyLength == body.length) {
-            sendHeader(header.header);
-            for (byte c : body) {
-                send(new byte[]{c});
+        header.body = body;
+        sendMessage(header);
+    }
+
+    public void sendMessage(Message msg) {
+        if (msg.bodyLength == msg.body.length) {
+            send(msg.header);
+            for (byte c : msg.body) {
+                send(c);
             }
         } else {
             System.err.println("Message body is not enough");
         }
     }
 
-    public void sendMessage(Message msg) {
-        send(new byte[]{msg.header});
-        send(msg.body);
-    }
-
-    private void sendHeader(byte header) {
-        send(new byte[]{header});
-    }
-
-    private void send(byte...message) {
+    private void send(byte... message) {
         try {
             while (busy) {
                 Thread.sleep(1);
             }
             busy = true;
             out.write(message);
+            Thread.sleep(2);
         } catch (InterruptedException | IOException e) {
             System.err.println(e.getMessage());
         }
@@ -83,10 +81,10 @@ public abstract class SerialInterface {
             while (in.available() > 0) {
                 byte b = (byte) in.read();
                 buffer.add(b);
-                
+
                 for (Message msg : slaveMessages) {
                     if (msg.header == b) {
-                        msg.body =null;
+                        msg.body = null;
                         if (msg.bodyLength > 0) {
                             msg.body = new byte[msg.bodyLength];
                             while (in.available() < msg.body.length);
@@ -123,6 +121,10 @@ public abstract class SerialInterface {
 
     public void setMicroHandler(MicroHandler micro) {
         this.micro = micro;
+    }
+
+    public ArrayList<Message> getSlaveMessages() {
+        return slaveMessages;
     }
 
     abstract public SerialPortParamters getConfigrations();
