@@ -21,10 +21,19 @@ import java.util.logging.Logger;
  */
 public abstract class SerialInterface {
 
+    private static byte[] toByteArray(int... numbers) {
+        byte[] buffer = new byte[numbers.length * Integer.BYTES];
+        for (int i = 0; i < numbers.length; i++) {
+            byte[] bytes = ByteBuffer.allocate(Integer.BYTES).putInt(numbers[i]).array();
+            System.arraycopy(bytes, 0, buffer, i * Integer.BYTES, bytes.length);
+        }
+        return buffer;
+    }
+
     protected OutputStream out;
     protected InputStream in;
     protected boolean connected = false, busy = false;
-    protected MicroHandler micro;
+    private MicroHandler microHandler;
 
     ArrayList<Message> slaveMessages = new ArrayList<>();
 
@@ -70,15 +79,6 @@ public abstract class SerialInterface {
         busy = false;
     }
 
-    private static byte[] toByteArray(int... numbers) {
-        byte[] buffer = new byte[numbers.length * Integer.BYTES];
-        for (int i = 0; i < numbers.length; i++) {
-            byte[] bytes = ByteBuffer.allocate(Integer.BYTES).putInt(numbers[i]).array();
-            System.arraycopy(bytes, 0, buffer, i * Integer.BYTES, bytes.length);
-        }
-        return buffer;
-    }
-
     public void serialEventHandler() {
         List<Byte> buffer = new ArrayList<>();
         try {
@@ -96,7 +96,7 @@ public abstract class SerialInterface {
                                 msg.body[i] = (byte) in.read();
                             }
                         }
-                        micro.processMicroMessage(msg);
+                        microHandler.processMicroMessage(msg);
                         break;
                     }
                 }
@@ -124,12 +124,13 @@ public abstract class SerialInterface {
     }
 
     public void setMicroHandler(MicroHandler micro) {
-        this.micro = micro;
+        this.microHandler = micro;
     }
 
     public ArrayList<Message> getSlaveMessages() {
         return slaveMessages;
     }
 
-    abstract public SerialPortParamters getConfigrations();
+    public abstract SerialPortParamters getConfigrations();
+
 }
