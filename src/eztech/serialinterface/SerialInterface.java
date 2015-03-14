@@ -42,13 +42,17 @@ public abstract class SerialInterface {
     }
 
     public void sendMessage(Message msg) {
-        if (msg.bodyLength == msg.body.length) {
-            send(msg.header);
-            for (byte c : msg.body) {
-                send(c);
+        if (msg.bodyLength > 0 && msg.body != null) {
+            if (msg.bodyLength == msg.body.length) {
+                send(msg.header);
+                for (byte c : msg.body) {
+                    send(c);
+                }
+            } else {
+                System.err.println("Message body is not enough");
             }
-        } else {
-            System.err.println("Message body is not enough");
+        }else{
+            send(msg.header);
         }
     }
 
