@@ -60,7 +60,7 @@ public abstract class SerialInterface {
             } else {
                 System.err.println("Message body is not enough");
             }
-        }else{
+        } else {
             send(msg.header);
         }
     }

@@ -11,13 +11,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
-import org.junit.After;
-import org.junit.AfterClass;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
@@ -30,17 +26,6 @@ public class SerialInterfaceTest {
     ArrayList<Byte> inBuffer;
     ArrayList<Byte> outBuffer;
 
-    public SerialInterfaceTest() {
-    }
-
-    @BeforeClass
-    public static void setUpClass() {
-    }
-    
-    @AfterClass
-    public static void tearDownClass() {
-    }
-    
     @Before
     public void setUp() {
         serialInterface = new SerialInterfaceImpl();
@@ -48,12 +33,6 @@ public class SerialInterfaceTest {
         inBuffer = new ArrayList<>();
         outBuffer = new ArrayList<>();
     }
-    
-    @After
-    public void tearDown() {
-        
-    }
-
 
     /**
      * Test of sendMessage method, of class SerialInterface.
@@ -99,20 +78,21 @@ public class SerialInterfaceTest {
     @Test
     public void testSerialEventHandler() {
         System.out.println("serialEventHandler");
-        serialInterface.setMicroHandler(new MicroHandler() {
-
-            @Override
-            public void processMicroMessage(Message msg) {
-                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-            }
+        serialInterface.setMicroHandler((Message msg) -> {
+            assertEquals(6, msg.header);
+            assertArrayEquals(new byte[]{1,2,3}, msg.body);
         });
-        serialInterface.slaveMessages.add(new Message((byte)6,(byte)7));
+        inBuffer.add((byte)6);
+        inBuffer.add((byte)1);
+        inBuffer.add((byte)2);
+        inBuffer.add((byte)3);
+        serialInterface.slaveMessages.add(new Message((byte)6, (byte)3));
         serialInterface.serialEventHandler();
-        fail("This is protoyye");
     }
 
     /**
-     * Test of read method, of class SerialInterface.
+     * Test of read method, of class Seri
+     * @throws java.io.IOException
      */
     @Test
     public void testRead() throws IOException{
@@ -140,12 +120,19 @@ public class SerialInterfaceTest {
             in = new InputStream() {
 
                 @Override
+                public int available() throws IOException {
+                    return inBuffer.size();
+                }
+                
+                @Override
                 public int read(){
                     byte b =  inBuffer.get(0);
                     inBuffer.remove(0);
                     return b;
                 }
+                
             };
+            
             out = new OutputStream() {
                  
                 @Override
