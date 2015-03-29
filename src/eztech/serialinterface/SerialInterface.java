@@ -72,7 +72,7 @@ public abstract class SerialInterface {
             }
             busy = true;
             out.write(message);
-            Thread.sleep(2);
+            Thread.sleep(10);
         } catch (InterruptedException | IOException e) {
             System.err.println(e.getMessage());
         }

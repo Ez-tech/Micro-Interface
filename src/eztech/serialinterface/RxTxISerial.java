@@ -5,6 +5,7 @@
  */
 package eztech.serialinterface;
 
+import eztech.protocol.Message;
 import gnu.io.CommPortIdentifier;
 import gnu.io.PortInUseException;
 import gnu.io.SerialPort;
@@ -43,7 +44,7 @@ public class RxTxISerial extends SerialInterface implements SerialPortEventListe
                                                params.Parity);
                 connected = true;
                 Thread.sleep(1000);
-                //sendMessage(Protocol.MasterMessage.HEALTH_CHECK);
+                sendMessage(new Message((byte)0,(byte)0));
             } catch (InterruptedException
                     | TooManyListenersException
                     | IOException
