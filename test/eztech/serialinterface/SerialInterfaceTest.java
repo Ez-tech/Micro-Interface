@@ -40,8 +40,8 @@ public class SerialInterfaceTest {
     @Test
     public void testSendMessage_Message_intArr() {
         System.out.println("sendMessage");
-        Message header = new Message((byte)10,(byte)12);
-        int[] body = {2,4,8};
+        Message header = new Message((byte) 10, (byte) 12);
+        int[] body = {2, 4, 8};
         serialInterface.sendMessage(header, body);
         assertEquals(true, true);
     }
@@ -52,11 +52,11 @@ public class SerialInterfaceTest {
     @Test
     final public void testSendMessage_Message_byteArr() {
         System.out.println("sendMessage");
-        Message header = new Message((byte)10,(byte)3) ;
-        byte[] body = {2,4,8};
-        serialInterface.sendMessage(header,body);
+        Message header = new Message((byte) 10, (byte) 3);
+        byte[] body = {2, 4, 8};
+        serialInterface.sendMessage(header, body);
         // TODO review the generated test code and remove the default call to fail.
-        assertArrayEquals(outBuffer.toArray(new Byte[]{}), new Byte[]{10,2,4,8} );
+        assertArrayEquals(outBuffer.toArray(new Byte[]{}), new Byte[]{10, 2, 4, 8});
     }
 
     /**
@@ -65,11 +65,11 @@ public class SerialInterfaceTest {
     @Test
     public void testSendMessage_Message() {
         System.out.println("sendMessage");
-        Message header = new Message((byte)10,(byte)3) ;
-        header.body = new byte[]{2,4,8};
+        Message header = new Message((byte) 10, (byte) 3);
+        header.body = new byte[]{2, 4, 8};
         serialInterface.sendMessage(header);
         // TODO review the generated test code and remove the default call to fail.
-        assertArrayEquals(outBuffer.toArray(new Byte[]{}), new Byte[]{10,2,4,8} );
+        assertArrayEquals(outBuffer.toArray(new Byte[]{}), new Byte[]{10, 2, 4, 8});
     }
 
     /**
@@ -80,24 +80,25 @@ public class SerialInterfaceTest {
         System.out.println("serialEventHandler");
         serialInterface.setMicroHandler((Message msg) -> {
             assertEquals(6, msg.header);
-            assertArrayEquals(new byte[]{1,2,3}, msg.body);
+            assertArrayEquals(new byte[]{1, 2, 3}, msg.body);
         });
-        inBuffer.add((byte)6);
-        inBuffer.add((byte)1);
-        inBuffer.add((byte)2);
-        inBuffer.add((byte)3);
-        serialInterface.slaveMessages.add(new Message((byte)6, (byte)3));
+        inBuffer.add((byte) 6);
+        inBuffer.add((byte) 1);
+        inBuffer.add((byte) 2);
+        inBuffer.add((byte) 3);
+        serialInterface.slaveMessages.add(new Message((byte) 6, (byte) 3));
         serialInterface.serialEventHandler();
     }
 
     /**
      * Test of read method, of class Seri
+     *
      * @throws java.io.IOException
      */
     @Test
-    public void testRead() throws IOException{
+    public void testRead() throws IOException {
         System.out.println("read");
-        inBuffer.add((byte)15);
+        inBuffer.add((byte) 15);
         int result = serialInterface.read();
         assertEquals(15, result);
     }
@@ -108,36 +109,35 @@ public class SerialInterfaceTest {
     @Test
     public void testIsConnected() {
         serialInterface.connectToPort(null);
-        assertEquals(serialInterface.isConnected(),true);
+        assertEquals(serialInterface.isConnected(), true);
     }
-
 
     public class SerialInterfaceImpl extends SerialInterface {
 
         @Override
         public void connectToPort(SerialPortParamters params) {
-            connected=true;
+            connected = true;
             in = new InputStream() {
 
                 @Override
                 public int available() throws IOException {
                     return inBuffer.size();
                 }
-                
+
                 @Override
-                public int read(){
-                    byte b =  inBuffer.get(0);
+                public int read() {
+                    byte b = inBuffer.get(0);
                     inBuffer.remove(0);
                     return b;
                 }
-                
+
             };
-            
+
             out = new OutputStream() {
-                 
+
                 @Override
-                public void write(int b){
-                   outBuffer.add((byte)b);
+                public void write(int b) {
+                    outBuffer.add((byte) b);
                 }
             };
         }
@@ -153,5 +153,5 @@ public class SerialInterfaceTest {
             return null;
         }
     }
-    
+
 }
