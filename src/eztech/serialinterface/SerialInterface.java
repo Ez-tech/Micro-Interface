@@ -12,8 +12,10 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 /**
  *
@@ -36,6 +38,18 @@ public abstract class SerialInterface {
     private MicroHandler microHandler;
 
     ArrayList<Message> slaveMessages = new ArrayList<>();
+    Logger logger; 
+    public SerialInterface() {
+        try {
+            logger = Logger.getLogger(this.getClass().getName());
+            FileHandler fh = new FileHandler("logs/" + this.getClass().getName() + ".log");
+            logger.addHandler(fh);
+            fh.setFormatter(new SimpleFormatter());
+            //logger.setUseParentHandlers(false);
+        } catch (IOException | SecurityException ex) {
+            logger.log(Level.SEVERE, null, ex);
+        }
+    }
 
     public abstract void connectToPort(SerialPortParamters params);
 
@@ -66,16 +80,21 @@ public abstract class SerialInterface {
     }
 
     private void send(byte... message) {
-        try {
-            while (busy) {
-                Thread.sleep(1);
+        if (connected && out != null) {
+            try {
+                while (busy) {
+                    Thread.sleep(1);
+                }
+                busy = true;
+                out.write(message);
+            } catch (InterruptedException | IOException e) {
+                System.err.println(e.getMessage());
             }
-            busy = true;
-            out.write(message);
-        } catch (InterruptedException | IOException e) {
-            System.err.println(e.getMessage());
+            busy = false;
         }
-        busy = false;
+        else{
+            Logger.getLogger(this.getClass().getName()).severe("Error: Not Connected");
+        }
     }
 
     public void serialEventHandler() {
@@ -105,11 +124,9 @@ public abstract class SerialInterface {
             for (int i = 0; i < bufferArray.length; i++) {
                 bufferArray[i] = buffer.get(i);
             }
-            System.out.println(new String(bufferArray));
-        } catch (IOException ex) {
-            Logger.getLogger(RxTxISerial.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InterruptedException ex) {
-            Logger.getLogger(SerialInterface.class.getName()).log(Level.SEVERE, null, ex);
+            logger.info(new String(bufferArray));
+        } catch (IOException | InterruptedException ex) {
+            logger.log(Level.SEVERE, null, ex);
         }
     }
 

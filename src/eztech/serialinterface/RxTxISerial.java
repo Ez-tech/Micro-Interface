@@ -39,22 +39,19 @@ public class RxTxISerial extends SerialInterface implements SerialPortEventListe
                 serialPort.addEventListener(this);
                 serialPort.notifyOnDataAvailable(true);
                 serialPort.setSerialPortParams(params.Baud,
-                                               params.DataBit,
-                                               params.StopBit,
-                                               params.Parity);
+                        params.DataBit,
+                        params.StopBit,
+                        params.Parity);
                 connected = true;
+                logger.log(Level.INFO, "Connected to port {0}.", params.Port);
                 Thread.sleep(1000);
-                sendMessage(new Message((byte)0,(byte)0));
-            } catch (InterruptedException
-                    | TooManyListenersException
-                    | IOException
-                    | PortInUseException
-                    | UnsupportedCommOperationException ex) {
+                sendMessage(new Message((byte) 0, (byte) 0));
+            } catch (InterruptedException | TooManyListenersException | IOException | PortInUseException | UnsupportedCommOperationException ex) {
                 Logger.getLogger(RxTxISerial.class.getName())
                         .log(Level.SEVERE, null, ex);
             }
         } else {
-            System.err.println("port " + params.Port + " not found.");
+            logger.log(Level.SEVERE, "port {0} not found.", params.Port);
         }
     }
 
