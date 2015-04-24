@@ -42,9 +42,10 @@ public abstract class SerialInterface {
     public SerialInterface() {
         try {
             logger = Logger.getLogger(this.getClass().getName());
-            FileHandler fh = new FileHandler("logs/" + this.getClass().getName() + ".log");
+            FileHandler fh = new FileHandler("logs/" + this.getClass().getName() + ".log",true);
             logger.addHandler(fh);
             fh.setFormatter(new SimpleFormatter());
+            logger.setLevel(Level.WARNING);
             //logger.setUseParentHandlers(false);
         } catch (IOException | SecurityException ex) {
             logger.log(Level.SEVERE, null, ex);
@@ -79,7 +80,7 @@ public abstract class SerialInterface {
         }
     }
 
-    private void send(byte... message) {
+    private synchronized void send(byte... message) {
         if (connected && out != null) {
             try {
                 while (busy) {
@@ -124,6 +125,7 @@ public abstract class SerialInterface {
             for (int i = 0; i < bufferArray.length; i++) {
                 bufferArray[i] = buffer.get(i);
             }
+            System.out.print(new String(bufferArray));
             logger.info(new String(bufferArray));
         } catch (IOException | InterruptedException ex) {
             logger.log(Level.SEVERE, null, ex);

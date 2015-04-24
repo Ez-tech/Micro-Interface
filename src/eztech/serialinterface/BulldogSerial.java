@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import org.bulldog.beagleboneblack.BBBNames;
 import org.bulldog.core.io.serial.*;
 import org.bulldog.core.platform.*;
 
@@ -37,6 +38,7 @@ public class BulldogSerial extends SerialInterface implements SerialDataListener
             serialPort.addListener(this);
             out = serialPort.getOutputStream();
             in = serialPort.getInputStream();
+            connected = true;
         } catch (IOException ex) {
             Logger.getLogger(BulldogSerial.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -54,7 +56,10 @@ public class BulldogSerial extends SerialInterface implements SerialDataListener
 
     @Override
     public SerialPortParamters getConfigrations() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        SerialPortParamters params = new SerialPortParamters();
+        params.Port = BBBNames.UART1;
+        params.Baud = System.getenv("BAUD") != null ? Integer.parseInt(System.getenv("BAUD")) : 9600;
+        return params;
     }
 
 }

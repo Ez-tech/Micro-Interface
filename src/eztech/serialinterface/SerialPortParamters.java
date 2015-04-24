@@ -11,7 +11,7 @@ package eztech.serialinterface;
  */
     public class SerialPortParamters{
        public String Port = "COM1";
-       public int Baud =115200 ,DataBit =8,StopBit =1,Parity =1;
+       public int Baud =115200 ,DataBit =8,StopBit =1,Parity =0;
 
     @Override
     public String toString() {
