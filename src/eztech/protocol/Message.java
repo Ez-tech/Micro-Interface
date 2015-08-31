@@ -5,11 +5,14 @@
  */
 package eztech.protocol;
 
+import java.util.Arrays;
+
 /**
  *
  * @author Aoki-kun
  */
 public class Message {
+
     public byte header;
     public byte[] body;
     public byte bodyLength; 
@@ -19,4 +22,12 @@ public class Message {
         this.bodyLength = bodyLength;
     }
     
+    @Override
+    public String toString() {
+        if (bodyLength == 0) {
+            return String.format("Header:%d", header);
+        } else {
+            return String.format("Header:%d ,Body:%s", header, Arrays.toString(body));
+        }
+    }
 }

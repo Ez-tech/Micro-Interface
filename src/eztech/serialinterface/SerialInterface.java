@@ -38,17 +38,18 @@ public abstract class SerialInterface {
     private MicroHandler microHandler;
 
     ArrayList<Message> slaveMessages = new ArrayList<>();
-    Logger logger; 
+    Logger logger;
+
     public SerialInterface() {
         try {
             logger = Logger.getLogger(this.getClass().getName());
-            FileHandler fh = new FileHandler("logs/" + this.getClass().getName() + ".log",true);
+            FileHandler fh = new FileHandler("logs/" + this.getClass().getName() + ".log", true);
             logger.addHandler(fh);
             fh.setFormatter(new SimpleFormatter());
-            logger.setLevel(Level.WARNING);
-            //logger.setUseParentHandlers(false);
+            logger.setLevel(Level.SEVERE);
+            logger.setUseParentHandlers(false);
         } catch (IOException | SecurityException ex) {
-            logger.log(Level.SEVERE, null, ex);
+            System.err.println("Logging init Error" + ex.getMessage());
         }
     }
 
@@ -80,7 +81,7 @@ public abstract class SerialInterface {
         }
     }
 
-    private synchronized void send(byte... message) {
+    protected synchronized void send(byte... message) {
         if (connected && out != null) {
             try {
                 while (busy) {
@@ -92,8 +93,7 @@ public abstract class SerialInterface {
                 System.err.println(e.getMessage());
             }
             busy = false;
-        }
-        else{
+        } else {
             Logger.getLogger(this.getClass().getName()).severe("Error: Not Connected");
         }
     }
@@ -126,7 +126,7 @@ public abstract class SerialInterface {
                 bufferArray[i] = buffer.get(i);
             }
             System.out.print(new String(bufferArray));
-            logger.info(new String(bufferArray));
+            // logger.info(new String(bufferArray));
         } catch (IOException | InterruptedException ex) {
             logger.log(Level.SEVERE, null, ex);
         }
