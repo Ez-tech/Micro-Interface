@@ -41,9 +41,13 @@ public class SerialInterfaceTest {
     public void testSendMessage_Message_intArr() {
         System.out.println("sendMessage");
         Message header = new Message((byte) 10, (byte) 12);
-        int[] body = {2, 4, 8};
+        int[] body = {2000, 40, -8000};
         serialInterface.sendMessage(header, body);
-        assertEquals(true, true);
+        assertArrayEquals(outBuffer.toArray(new Byte[]{}),
+                new Byte[]{10,
+                    0, 0, 7, -48,
+                    0, 0, 0, 40,
+                    -1, -1, -32, -64});
     }
 
     /**
@@ -66,7 +70,7 @@ public class SerialInterfaceTest {
     public void testSendMessage_Message() {
         System.out.println("sendMessage");
         Message header = new Message((byte) 10, (byte) 3);
-        header.body = new byte[]{2, 4, 8};
+        header.setBody(2, 4, 8);
         serialInterface.sendMessage(header);
         // TODO review the generated test code and remove the default call to fail.
         assertArrayEquals(outBuffer.toArray(new Byte[]{}), new Byte[]{10, 2, 4, 8});
@@ -79,14 +83,14 @@ public class SerialInterfaceTest {
     public void testSerialEventHandler() {
         System.out.println("serialEventHandler");
         serialInterface.setMicroHandler((Message msg) -> {
-            assertEquals(6, msg.header);
-            assertArrayEquals(new byte[]{1, 2, 3}, msg.body);
+            assertEquals(6, (int) msg.getHeader());
+            assertArrayEquals(new byte[]{1, 2, 3}, msg.getBody());
         });
         inBuffer.add((byte) 6);
         inBuffer.add((byte) 1);
         inBuffer.add((byte) 2);
         inBuffer.add((byte) 3);
-        serialInterface.slaveMessages.add(new Message((byte) 6, (byte) 3));
+        serialInterface.slaveMessages.put((byte) 6, (byte) 3);
         serialInterface.serialEventHandler();
     }
 

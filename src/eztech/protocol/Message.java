@@ -11,23 +11,77 @@ import java.util.Arrays;
  *
  * @author Aoki-kun
  */
-public class Message {
+public class Message implements Comparable<Message> {
 
-    public byte header;
-    public byte[] body;
-    public byte bodyLength; 
+    private final byte header;
+    private final byte[] body;
 
     public Message(byte header, byte bodyLength) {
         this.header = header;
-        this.bodyLength = bodyLength;
+        this.body = new byte[bodyLength];
     }
-    
-    @Override
-    public String toString() {
-        if (bodyLength == 0) {
-            return String.format("Header:%d", header);
-        } else {
-            return String.format("Header:%d ,Body:%s", header, Arrays.toString(body));
+
+    public Message(byte header, byte... body) {
+        this(header, (byte) body.length);
+        setBody(body);
+    }
+
+    public Message(byte header, int... body) {
+        this(header, (byte) body.length);
+        setBody(body);
+    }
+
+    public void setBody(int... body) {
+        for (int i = 0; i < this.body.length; i++) {
+            this.body[i] = (byte) body[i];
         }
     }
+
+    public void setBody(byte... body) {
+        System.arraycopy(body, 0, this.body, 0, this.body.length);
+    }
+
+    public int getBodyLength() {
+        return body.length;
+    }
+
+    public byte[] getBody() {
+        return body;
+    }
+
+    public byte getHeader() {
+        return header;
+    }
+
+    public boolean hasBody() {
+        return body != null && body.length > 0;
+    }
+
+    @Override
+    public String toString() {
+        if (hasBody()) {
+            return String.format("Header:%d ,Body:%s", header, Arrays.toString(body));
+        } else {
+            return String.format("Header:%d", header);
+        }
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return this.toString().equals(obj.toString());
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 37 * hash + this.header;
+        hash = 37 * hash + Arrays.hashCode(this.body);
+        return hash;
+    }
+
+    @Override
+    public int compareTo(Message o) {
+        return this.header - o.header;
+    }
+
 }

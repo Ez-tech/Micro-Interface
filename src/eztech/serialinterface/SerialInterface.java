@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
@@ -37,7 +38,7 @@ public abstract class SerialInterface {
     protected boolean connected = false, busy = false;
     private MicroHandler microHandler;
 
-    ArrayList<Message> slaveMessages = new ArrayList<>();
+    HashMap<Byte, Byte> slaveMessages = new HashMap<>();
     Logger logger;
 
     public SerialInterface() {
@@ -62,22 +63,18 @@ public abstract class SerialInterface {
     }
 
     public void sendMessage(Message header, byte... body) {
-        header.body = body;
+        header.setBody(body);
         sendMessage(header);
     }
 
     public void sendMessage(Message msg) {
-        if (msg.bodyLength > 0 && msg.body != null) {
-            if (msg.bodyLength == msg.body.length) {
-                send(msg.header);
-                for (byte c : msg.body) {
-                    send(c);
-                }
-            } else {
-                System.err.println("Message body is not enough");
+        if (msg.hasBody()) {
+            send(msg.getHeader());
+            for (byte c : msg.getBody()) {
+                send(c);
             }
         } else {
-            send(msg.header);
+            send(msg.getHeader());
         }
     }
 
@@ -102,22 +99,19 @@ public abstract class SerialInterface {
         List<Byte> buffer = new ArrayList<>();
         try {
             while (in.available() > 0) {
-                byte b = (byte) in.read();
-                buffer.add(b);
-
-                for (Message msg : slaveMessages) {
-                    if (msg.header == b) {
-                        msg.body = null;
-                        if (msg.bodyLength > 0) {
-                            msg.body = new byte[msg.bodyLength];
-                            while (in.available() < msg.body.length);
-                            for (int i = 0; i < msg.body.length; i++) {
-                                msg.body[i] = (byte) in.read();
-                            }
+                byte header = (byte) in.read();
+                buffer.add(header);
+                if (slaveMessages.containsKey(header)) {
+                    Message msg = new Message(header, slaveMessages.get(header));
+                    if (msg.hasBody()) {
+                        int[] body = new int[msg.getBodyLength()];
+                        while (in.available() < msg.getBodyLength());
+                        for (int i = 0; i < msg.getBodyLength(); i++) {
+                            body[i] = in.read();
                         }
-                        microHandler.processMicroMessage(msg);
-                        break;
+                        msg.setBody(body);
                     }
+                    microHandler.processMicroMessage(msg);
                 }
                 Thread.sleep(1);
             }
@@ -145,8 +139,12 @@ public abstract class SerialInterface {
         this.microHandler = micro;
     }
 
-    public ArrayList<Message> getSlaveMessages() {
-        return slaveMessages;
+    public void addSlaveMessage(Message msg) {
+        slaveMessages.put(msg.getHeader(), (byte) msg.getBodyLength());
+    }
+
+    public void addSlaveMessages(List<Message> messages) {
+        messages.forEach(msg -> addSlaveMessage(msg));
     }
 
     public abstract SerialPortParamters getConfigrations();
