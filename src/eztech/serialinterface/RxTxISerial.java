@@ -5,7 +5,6 @@
  */
 package eztech.serialinterface;
 
-import eztech.protocol.Message;
 import gnu.io.CommPortIdentifier;
 import gnu.io.PortInUseException;
 import gnu.io.SerialPort;
@@ -43,10 +42,9 @@ public class RxTxISerial extends SerialInterface implements SerialPortEventListe
                         params.StopBit,
                         params.Parity);
                 connected = true;
+                serialPort.close();
                 logger.log(Level.INFO, "Connected to port {0}.", params.Port);
-                Thread.sleep(1000);
-                sendMessage(new Message((byte) 0, (byte) 0));
-            } catch (InterruptedException | TooManyListenersException | IOException | PortInUseException | UnsupportedCommOperationException ex) {
+            } catch (TooManyListenersException | IOException | PortInUseException | UnsupportedCommOperationException ex) {
                 Logger.getLogger(RxTxISerial.class.getName())
                         .log(Level.SEVERE, null, ex);
             }
@@ -101,6 +99,11 @@ public class RxTxISerial extends SerialInterface implements SerialPortEventListe
         params.StopBit = SerialPort.STOPBITS_1;
         params.DataBit = SerialPort.DATABITS_8;
         return params;
+    }
+
+    @Override
+    public void disconnect() {
+        serialPort.close();
     }
 
 }

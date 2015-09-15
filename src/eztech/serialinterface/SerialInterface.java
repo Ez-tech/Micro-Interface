@@ -58,6 +58,8 @@ public abstract class SerialInterface {
 
     public abstract List<String> getAvailablePorts();
 
+    public abstract void disconnect();
+
     public void sendMessage(Message header, int... body) {
         sendMessage(header, toByteArray(body));
     }

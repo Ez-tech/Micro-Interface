@@ -62,4 +62,13 @@ public class BulldogSerial extends SerialInterface implements SerialDataListener
         return params;
     }
 
+    @Override
+    public void disconnect() {
+        try {
+            serialPort.close();
+        } catch (IOException ex) {
+            Logger.getLogger(BulldogSerial.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
 }

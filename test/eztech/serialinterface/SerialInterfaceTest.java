@@ -156,6 +156,10 @@ public class SerialInterfaceTest {
         public SerialPortParamters getConfigrations() {
             return null;
         }
+
+        @Override
+        public void disconnect() {
+        }
     }
 
 }
