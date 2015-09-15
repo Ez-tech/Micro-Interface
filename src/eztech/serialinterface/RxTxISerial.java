@@ -42,7 +42,6 @@ public class RxTxISerial extends SerialInterface implements SerialPortEventListe
                         params.StopBit,
                         params.Parity);
                 connected = true;
-                serialPort.close();
                 logger.log(Level.INFO, "Connected to port {0}.", params.Port);
             } catch (TooManyListenersException | IOException | PortInUseException | UnsupportedCommOperationException ex) {
                 Logger.getLogger(RxTxISerial.class.getName())
