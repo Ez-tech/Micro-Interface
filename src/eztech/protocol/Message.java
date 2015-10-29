@@ -56,6 +56,13 @@ public class Message implements Comparable<Message> {
     public boolean hasBody() {
         return body != null && body.length > 0;
     }
+    
+    public byte[] toByteArray(){
+       byte[] msg = new byte[body.length+1];
+       msg[0]= header;
+       System.arraycopy(body, 0, msg, 1, body.length);
+       return msg;
+    }
 
     @Override
     public String toString() {

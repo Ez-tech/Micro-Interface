@@ -70,16 +70,24 @@ public abstract class SerialInterface {
     }
 
     public void sendMessage(Message msg) {
-        if (msg.hasBody()) {
-            send(msg.getHeader());
-            for (byte c : msg.getBody()) {
-                send(c);
-            }
-        } else {
-            send(msg.getHeader());
-        }
+        send(msg.toByteArray());
     }
-
+    
+    public void sendBundle(List<Message> msgList){
+        int totalBundleSize = 0;
+        for (Message msg : msgList) {
+            totalBundleSize+=msg.getBodyLength()+1;
+        }
+        byte[] messageBundle = new byte[totalBundleSize];
+        int lastIndex=0;
+        for (int i = 0; i < msgList.size(); i++) {
+            byte[] msg = msgList.get(i).toByteArray();
+            System.arraycopy(msg, 0, messageBundle, lastIndex, msg.length);
+            lastIndex+=msg.length;
+        }
+        send(messageBundle);
+    }
+    
     protected synchronized void send(byte... message) {
         if (connected && out != null) {
             try {
