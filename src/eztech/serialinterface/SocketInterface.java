@@ -31,6 +31,8 @@ public class SocketInterface extends SerialInterface {
                     try {
                         if(in.available()>0)
                             serialEventHandler();
+                        else
+                            Thread.sleep(10);
                     } catch (Exception ex) {
                     }
                 }
