@@ -20,6 +20,13 @@ public class SocketInterface extends SerialInterface {
     Socket socket;
     static final int MACHINE_SERVER_PORT = 8080;
     static final String MACHINE_SERVER_IP = "192.168.1.101";
+
+    public SocketInterface() {
+        msgbundelled = true;
+        buffredTransmitter.setChecksum(false);
+        msgBuffered = true;
+    }
+
     @Override
     public void connectToPort(SerialPortParamters params) {
         try {
@@ -29,14 +36,15 @@ public class SocketInterface extends SerialInterface {
             new Thread(() -> {
                 while (socket.isConnected()) {
                     try {
-                        if(in.available()>0)
+                        if (in.available() > 0) {
                             serialEventHandler();
-                        else
+                        } else {
                             Thread.sleep(10);
+                        }
                     } catch (Exception ex) {
                     }
                 }
-            }).start();
+            },"Socket Listener").start();
             connected = true;
         } catch (IOException ex) {
             Logger.getLogger(SocketInterface.class.getName()).log(Level.SEVERE, null, ex);
@@ -53,7 +61,7 @@ public class SocketInterface extends SerialInterface {
         try {
             socket.close();
         } catch (IOException ex) {
-            System.err.println("Error Close");    
+            System.err.println("Error Close");
         }
     }
 

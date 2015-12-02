@@ -26,6 +26,8 @@ public class BulldogSerial extends SerialInterface implements SerialDataListener
 
     public BulldogSerial() {
         board = Platform.createBoard();
+        msgBuffered=false;
+        msgbundelled=false;
     }
 
     @Override

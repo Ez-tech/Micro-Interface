@@ -27,6 +27,12 @@ public class RxTxISerial extends SerialInterface implements SerialPortEventListe
 
     SerialPort serialPort;
 
+    public RxTxISerial() {
+        msgbundelled = false;
+        msgBuffered = false;
+        buffredTransmitter.setChecksum(false);
+    }
+
     @Override
     public void connectToPort(SerialPortParamters params) {
         CommPortIdentifier portId = getPortID(params.Port);

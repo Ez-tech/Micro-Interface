@@ -7,14 +7,11 @@ package eztech.serialinterface;
 
 import eztech.protocol.Message;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.List;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Test;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
 /**
  *
@@ -28,39 +25,19 @@ public class SerialInterfaceTest {
 
     @Before
     public void setUp() {
-        serialInterface = new SerialInterfaceImpl();
-        serialInterface.connectToPort(null);
+
         inBuffer = new ArrayList<>();
         outBuffer = new ArrayList<>();
-    }
+        serialInterface = new SerialInterfaceImpl(inBuffer, outBuffer);
+        serialInterface.connectToPort(null);
+        serialInterface.buffredTransmitter = new BuffredTransmitter(serialInterface) {
 
-    /**
-     * Test of sendMessage method, of class SerialInterface.
-     */
-    @Test
-    public void testSendMessage_Message_intArr() {
-        System.out.println("sendMessage");
-        Message header = new Message((byte) 10, (byte) 12);
-        int[] body = {2000, 40, -8000};
-        serialInterface.sendMessage(header, body);
-        assertArrayEquals(outBuffer.toArray(new Byte[]{}),
-                new Byte[]{10,
-                    0, 0, 7, -48,
-                    0, 0, 0, 40,
-                    -1, -1, -32, -64});
-    }
+            @Override
+            synchronized void send(byte... message) {
+                serialInterface.directSend(message);
+            }
 
-    /**
-     * Test of sendMessage method, of class SerialInterface.
-     */
-    @Test
-    final public void testSendMessage_Message_byteArr() {
-        System.out.println("sendMessage");
-        Message header = new Message((byte) 10, (byte) 3);
-        byte[] body = {2, 4, 8};
-        serialInterface.sendMessage(header, body);
-        // TODO review the generated test code and remove the default call to fail.
-        assertArrayEquals(outBuffer.toArray(new Byte[]{}), new Byte[]{10, 2, 4, 8});
+        };
     }
 
     /**
@@ -95,71 +72,12 @@ public class SerialInterfaceTest {
     }
 
     /**
-     * Test of read method, of class Seri
-     *
-     * @throws java.io.IOException
-     */
-    @Test
-    public void testRead() throws IOException {
-        System.out.println("read");
-        inBuffer.add((byte) 15);
-        int result = serialInterface.read();
-        assertEquals(15, result);
-    }
-
-    /**
      * Test of isConnected method, of class SerialInterface.
      */
     @Test
     public void testIsConnected() {
         serialInterface.connectToPort(null);
         assertEquals(serialInterface.isConnected(), true);
-    }
-
-    public class SerialInterfaceImpl extends SerialInterface {
-
-        @Override
-        public void connectToPort(SerialPortParamters params) {
-            connected = true;
-            in = new InputStream() {
-
-                @Override
-                public int available() throws IOException {
-                    return inBuffer.size();
-                }
-
-                @Override
-                public int read() {
-                    byte b = inBuffer.get(0);
-                    inBuffer.remove(0);
-                    return b;
-                }
-
-            };
-
-            out = new OutputStream() {
-
-                @Override
-                public void write(int b) {
-                    outBuffer.add((byte) b);
-                }
-            };
-        }
-
-        @Override
-        public List<String> getAvailablePorts() {
-            ArrayList<String> portList = new ArrayList<>();
-            return portList;
-        }
-
-        @Override
-        public SerialPortParamters getConfigrations() {
-            return null;
-        }
-
-        @Override
-        public void disconnect() {
-        }
     }
 
 }

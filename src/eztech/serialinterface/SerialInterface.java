@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.FileHandler;
@@ -23,6 +22,8 @@ import java.util.logging.SimpleFormatter;
  * @author Aoki-kun
  */
 public abstract class SerialInterface {
+
+    public static final byte ACKNOWLEDGE = 0x55;
 
     private static byte[] toByteArray(int... numbers) {
         byte[] buffer = new byte[numbers.length * Integer.BYTES];
@@ -37,11 +38,13 @@ public abstract class SerialInterface {
     protected InputStream in;
     protected boolean connected = false, busy = false;
     private MicroHandler microHandler;
-
+    BuffredTransmitter buffredTransmitter;
     HashMap<Byte, Byte> slaveMessages = new HashMap<>();
     Logger logger;
+    protected boolean msgBuffered, doubleBuffred, msgbundelled;
 
     public SerialInterface() {
+        buffredTransmitter = new BuffredTransmitter(this);
         try {
             logger = Logger.getLogger(this.getClass().getName());
             FileHandler fh = new FileHandler("logs/" + this.getClass().getName() + ".log", true);
@@ -60,58 +63,66 @@ public abstract class SerialInterface {
 
     public abstract void disconnect();
 
-    public void sendMessage(Message header, int... body) {
-        sendMessage(header, toByteArray(body));
-    }
-
-    public void sendMessage(Message header, byte... body) {
-        header.setBody(body);
-        sendMessage(header);
-    }
-
     public void sendMessage(Message msg) {
         send(msg.toByteArray());
     }
-    
-    public void sendBundle(List<Message> msgList){
-        int totalBundleSize = 0;
-        for (Message msg : msgList) {
-            totalBundleSize+=msg.getBodyLength()+1;
-        }
-        byte[] messageBundle = new byte[totalBundleSize];
-        int lastIndex=0;
-        for (int i = 0; i < msgList.size(); i++) {
-            byte[] msg = msgList.get(i).toByteArray();
-            System.arraycopy(msg, 0, messageBundle, lastIndex, msg.length);
-            lastIndex+=msg.length;
-        }
-        send(messageBundle);
+
+    public void sendMessages(List<Message> msgList) {
+        msgList.forEach(msg -> send(msg.toByteArray()));
     }
-    
-    protected synchronized void send(byte... message) {
+
+    public void sendBundle(List<Message> msgList) {
+        int totalBundleSize = msgList.stream()
+                .mapToInt((msg) -> msg.getBodyLength() + 1).sum();
+        ByteBuffer buffer = ByteBuffer.allocate(totalBundleSize);
+        msgList.forEach(msg -> buffer.put(msg.toByteArray()));
+        send(buffer.array());
+    }
+
+    public synchronized void directSend(byte... message) {
         if (connected && out != null) {
             try {
                 while (busy) {
                     Thread.sleep(1);
                 }
                 busy = true;
-                out.write(message);
+                if (msgbundelled) {
+                    out.write(message);
+                } else {
+                    for (byte b : message) {
+                        out.write(b);
+                    }
+                }
             } catch (InterruptedException | IOException e) {
                 System.err.println(e.getMessage());
             }
             busy = false;
         } else {
-            Logger.getLogger(this.getClass().getName()).severe("Error: Not Connected");
+            System.err.println("Error: Not Connected");
+        }
+    }
+
+    private void buffredSend(byte... message) {
+        buffredTransmitter.send(message);
+    }
+
+    private void send(byte... message) {
+        if (msgBuffered) {
+            buffredSend(message);
+        } else {
+            directSend(message);
         }
     }
 
     public void serialEventHandler() {
-        List<Byte> buffer = new ArrayList<>();
+        StringBuilder msgBuffer = new StringBuilder();
         try {
             while (in.available() > 0) {
                 byte header = (byte) in.read();
-                buffer.add(header);
-                if (slaveMessages.containsKey(header)) {
+                if (header == ACKNOWLEDGE) {
+                    byte b = (byte) in.read();
+                    buffredTransmitter.setAcknowledge(!(b == 0));
+                } else if (slaveMessages.containsKey(header)) {
                     Message msg = new Message(header, slaveMessages.get(header));
                     if (msg.hasBody()) {
                         int[] body = new int[msg.getBodyLength()];
@@ -122,23 +133,15 @@ public abstract class SerialInterface {
                         msg.setBody(body);
                     }
                     microHandler.processMicroMessage(msg);
+                } else {
+                    msgBuffer.append((char) header);
                 }
                 Thread.sleep(1);
             }
-            byte[] bufferArray = new byte[buffer.size()];
-            for (int i = 0; i < bufferArray.length; i++) {
-                bufferArray[i] = buffer.get(i);
-            }
-            System.out.print(new String(bufferArray));
-            // logger.info(new String(bufferArray));
+            System.out.print(msgBuffer.toString());
         } catch (IOException | InterruptedException ex) {
             logger.log(Level.SEVERE, null, ex);
         }
-    }
-
-    protected int read() throws IOException {
-        in.available();
-        return in.read();
     }
 
     public boolean isConnected() {
@@ -150,6 +153,10 @@ public abstract class SerialInterface {
     }
 
     public void addSlaveMessage(Message msg) {
+        if (msg.getHeader() == ACKNOWLEDGE) {
+            System.err.printf("%x, header is reserved", ACKNOWLEDGE);
+            return;
+        }
         slaveMessages.put(msg.getHeader(), (byte) msg.getBodyLength());
     }
 
