@@ -5,7 +5,9 @@
  */
 package eztech.serialinterface;
 
+import eztech.serialinterface.exceptions.ConnectionFailedException;
 import gnu.io.CommPortIdentifier;
+import gnu.io.NoSuchPortException;
 import gnu.io.PortInUseException;
 import gnu.io.SerialPort;
 import gnu.io.SerialPortEvent;
@@ -34,44 +36,23 @@ public class RxTxISerial extends SerialInterface implements SerialPortEventListe
     }
 
     @Override
-    public void connectToPort(SerialPortParamters params) {
-        CommPortIdentifier portId = getPortID(params.Port);
-        if (portId != null) {
-            try {
-                serialPort = (SerialPort) portId.open("Ez-Mill", 2000);
-                in = serialPort.getInputStream();
-                out = serialPort.getOutputStream();
-                serialPort.addEventListener(this);
-                serialPort.notifyOnDataAvailable(true);
-                serialPort.setSerialPortParams(params.Baud,
-                        params.DataBit,
-                        params.StopBit,
-                        params.Parity);
-                connected = true;
-                logger.log(Level.INFO, "Connected to port {0}.", params.Port);
-            } catch (TooManyListenersException | IOException | PortInUseException | UnsupportedCommOperationException ex) {
-                Logger.getLogger(RxTxISerial.class.getName())
-                        .log(Level.SEVERE, null, ex);
-            }
-        } else {
-            logger.log(Level.SEVERE, "port {0} not found.", params.Port);
+    public void connectToPort(SerialPortParamters params) throws ConnectionFailedException {
+        try {
+            CommPortIdentifier portId = CommPortIdentifier.getPortIdentifier(params.Port);
+            serialPort = (SerialPort) portId.open("Ez-Mill", 2000);
+            in = serialPort.getInputStream();
+            out = serialPort.getOutputStream();
+            serialPort.addEventListener(this);
+            serialPort.notifyOnDataAvailable(true);
+            serialPort.setSerialPortParams(params.Baud,
+                    params.DataBit,
+                    params.StopBit,
+                    params.Parity);
+            connected = true;
+            logger.log(Level.INFO, "Connected to port {0}.", params.Port);
+        } catch (Exception ex) {
+            throw new ConnectionFailedException(ex);
         }
-    }
-
-    private CommPortIdentifier getPortID(String port) {
-        // parse ports and if the default port is found, initialized the reader
-        Enumeration portList = CommPortIdentifier.getPortIdentifiers();
-        CommPortIdentifier portId;
-        while (portList.hasMoreElements()) {
-            portId = (CommPortIdentifier) portList.nextElement();
-            if (portId.getPortType() == CommPortIdentifier.PORT_SERIAL) {
-                if (portId.getName().equals(port)) {
-                    System.out.println("Found port: " + port);
-                    return portId;
-                }
-            }
-        }
-        return null;
     }
 
     @Override

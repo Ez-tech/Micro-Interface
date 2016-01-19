@@ -6,6 +6,7 @@
 package eztech.serialinterface;
 
 import eztech.protocol.Message;
+import eztech.serialinterface.exceptions.ConnectionFailedException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -57,11 +58,13 @@ public abstract class SerialInterface {
         }
     }
 
-    public abstract void connectToPort(SerialPortParamters params);
+    public abstract void connectToPort(SerialPortParamters params) throws ConnectionFailedException;
 
     public abstract List<String> getAvailablePorts();
 
     public abstract void disconnect();
+
+    public abstract SerialPortParamters getConfigrations();
 
     public void sendMessage(Message msg) {
         send(msg.toByteArray());
@@ -163,7 +166,5 @@ public abstract class SerialInterface {
     public void addSlaveMessages(List<Message> messages) {
         messages.forEach(msg -> addSlaveMessage(msg));
     }
-
-    public abstract SerialPortParamters getConfigrations();
 
 }

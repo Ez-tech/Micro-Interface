@@ -5,11 +5,10 @@
  */
 package eztech.serialinterface;
 
+import eztech.serialinterface.exceptions.ConnectionFailedException;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -28,7 +27,7 @@ public class SocketInterface extends SerialInterface {
     }
 
     @Override
-    public void connectToPort(SerialPortParamters params) {
+    public void connectToPort(SerialPortParamters params) throws ConnectionFailedException {
         try {
             socket = new Socket(MACHINE_SERVER_IP, MACHINE_SERVER_PORT);
             out = socket.getOutputStream();
@@ -44,10 +43,10 @@ public class SocketInterface extends SerialInterface {
                     } catch (Exception ex) {
                     }
                 }
-            },"Socket Listener").start();
+            }, "Socket Listener").start();
             connected = true;
         } catch (IOException ex) {
-            Logger.getLogger(SocketInterface.class.getName()).log(Level.SEVERE, null, ex);
+            throw new ConnectionFailedException(ex);
         }
     }
 
