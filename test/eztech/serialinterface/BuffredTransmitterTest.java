@@ -5,6 +5,7 @@
  */
 package eztech.serialinterface;
 
+import eztech.serialinterface.exceptions.ConnectionFailedException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -22,7 +23,7 @@ public class BuffredTransmitterTest {
 
     ArrayList<Byte> in, out;
     SerialInterface si;
-    BuffredTransmitter instance;
+    BufferedTransmitter instance;
 
     public BuffredTransmitterTest() {
     }
@@ -32,8 +33,11 @@ public class BuffredTransmitterTest {
         in = new ArrayList<>();
         out = new ArrayList<>();
         si = new SerialInterfaceImpl(in, out);
-        si.connectToPort(null);
-        instance = new BuffredTransmitter(si);
+        try {
+            si.connectToPort(null);
+        } catch (ConnectionFailedException ex) {
+        }
+        instance = new BufferedTransmitter(si);
     }
 
     @Test
@@ -64,7 +68,7 @@ public class BuffredTransmitterTest {
             }
         }
         while (!out.isEmpty()) {
-            int size = sample.length > BuffredTransmitter.BUFFER_MAX_SIZE ? BuffredTransmitter.BUFFER_ACTUAL_MAX_SIZE : out.size();
+            int size = sample.length > BufferedTransmitter.BUFFER_MAX_SIZE ? BufferedTransmitter.BUFFER_ACTUAL_MAX_SIZE : out.size();
             List<Byte> outBuffer = new ArrayList<>();
             outBuffer.addAll(out.subList(0, size));
             out.removeAll(outBuffer);
@@ -72,7 +76,7 @@ public class BuffredTransmitterTest {
                 byte head = outBuffer.remove(0);
                 int len = outBuffer.remove(0) << 8 | outBuffer.remove(0);
                 int sum = outBuffer.remove(0) << 8 | outBuffer.remove(0);
-                assertEquals(head, BuffredTransmitter.MESSAGE_START);
+                assertEquals(head, BufferedTransmitter.MESSAGE_START);
                 assertEquals(size - 5, len);
                 assertEquals(outBuffer.stream().mapToInt(Byte::intValue).sum(), sum);
             }

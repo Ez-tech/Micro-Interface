@@ -6,8 +6,10 @@
 package eztech.serialinterface;
 
 import eztech.protocol.Message;
-import java.io.IOException;
+import eztech.serialinterface.exceptions.ConnectionFailedException;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.assertArrayEquals;
@@ -29,8 +31,11 @@ public class SerialInterfaceTest {
         inBuffer = new ArrayList<>();
         outBuffer = new ArrayList<>();
         serialInterface = new SerialInterfaceImpl(inBuffer, outBuffer);
-        serialInterface.connectToPort(null);
-        serialInterface.buffredTransmitter = new BuffredTransmitter(serialInterface) {
+        try {
+            serialInterface.connectToPort(null);
+        } catch (ConnectionFailedException ex) {
+        }
+        serialInterface.buffredTransmitter = new BufferedTransmitter(serialInterface) {
 
             @Override
             synchronized void send(byte... message) {
@@ -76,7 +81,10 @@ public class SerialInterfaceTest {
      */
     @Test
     public void testIsConnected() {
-        serialInterface.connectToPort(null);
+        try {
+            serialInterface.connectToPort(null);
+        } catch (ConnectionFailedException ex) {
+        }
         assertEquals(serialInterface.isConnected(), true);
     }
 

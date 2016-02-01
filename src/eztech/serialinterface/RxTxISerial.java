@@ -7,19 +7,13 @@ package eztech.serialinterface;
 
 import eztech.serialinterface.exceptions.ConnectionFailedException;
 import gnu.io.CommPortIdentifier;
-import gnu.io.NoSuchPortException;
-import gnu.io.PortInUseException;
 import gnu.io.SerialPort;
 import gnu.io.SerialPortEvent;
 import gnu.io.SerialPortEventListener;
-import gnu.io.UnsupportedCommOperationException;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.TooManyListenersException;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -30,13 +24,11 @@ public class RxTxISerial extends SerialInterface implements SerialPortEventListe
     SerialPort serialPort;
 
     public RxTxISerial() {
-        msgbundelled = false;
-        msgBuffered = false;
-        buffredTransmitter.setChecksum(false);
+        //buffredTransmitter.setChecksum(false);
     }
 
     @Override
-    public void connectToPort(SerialPortParamters params) throws ConnectionFailedException {
+    public void connectToPort(ConnectionParamters params) throws ConnectionFailedException {
         try {
             CommPortIdentifier portId = CommPortIdentifier.getPortIdentifier(params.Port);
             serialPort = (SerialPort) portId.open("Ez-Mill", 2000);
@@ -77,10 +69,10 @@ public class RxTxISerial extends SerialInterface implements SerialPortEventListe
     }
 
     @Override
-    public SerialPortParamters getConfigrations() {
-        SerialPortParamters params = new SerialPortParamters();
-        params.Port = System.getenv("PORT") != null ? System.getenv("PORT") : "COM10";
-        params.Baud = System.getenv("BAUD") != null ? Integer.parseInt(System.getenv("BAUD")) : 9600;
+    public ConnectionParamters getConfigrations() {
+        ConnectionParamters params = new ConnectionParamters(System.getProperties());
+        params.Port = params.getSerialPort() != null ? params.getSerialPort() : "COM10";
+        params.Baud = params.getSerialBaud() == 0 ? params.getSerialBaud() : 9600;
         params.Parity = SerialPort.PARITY_NONE;
         params.StopBit = SerialPort.STOPBITS_1;
         params.DataBit = SerialPort.DATABITS_8;

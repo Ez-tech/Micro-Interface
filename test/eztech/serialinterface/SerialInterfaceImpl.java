@@ -6,7 +6,7 @@
 package eztech.serialinterface;
 
 import eztech.serialinterface.SerialInterface;
-import eztech.serialinterface.SerialPortParamters;
+import eztech.serialinterface.ConnectionParamters;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -28,7 +28,7 @@ public class SerialInterfaceImpl extends SerialInterface {
     }
 
     @Override
-    public void connectToPort(SerialPortParamters params) {
+    public void connectToPort(ConnectionParamters params) {
         connected = true;
         in = new InputStream() {
 
@@ -62,7 +62,7 @@ public class SerialInterfaceImpl extends SerialInterface {
     }
 
     @Override
-    public SerialPortParamters getConfigrations() {
+    public ConnectionParamters getConfigrations() {
         return null;
     }
 

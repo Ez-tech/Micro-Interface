@@ -26,12 +26,10 @@ public class BulldogSerial extends SerialInterface implements SerialDataListener
 
     public BulldogSerial() {
         board = Platform.createBoard();
-        msgBuffered=false;
-        msgbundelled=false;
     }
 
     @Override
-    public void connectToPort(SerialPortParamters params) {
+    public void connectToPort(ConnectionParamters params) {
         try {
             serialPort = board.getSerialPort(params.Port);
             serialPort.setBaudRate(params.Baud);
@@ -46,9 +44,9 @@ public class BulldogSerial extends SerialInterface implements SerialDataListener
         }
     }
 
-   @Override
+    @Override
     public List<String> getAvailablePorts() {
-       return board.getSerialPorts().stream().map(sp -> sp.getName()).collect(Collectors.toList());
+        return board.getSerialPorts().stream().map(sp -> sp.getName()).collect(Collectors.toList());
     }
 
     @Override
@@ -57,8 +55,8 @@ public class BulldogSerial extends SerialInterface implements SerialDataListener
     }
 
     @Override
-    public SerialPortParamters getConfigrations() {
-        SerialPortParamters params = new SerialPortParamters();
+    public ConnectionParamters getConfigrations() {
+        ConnectionParamters params = new ConnectionParamters(null);
         params.Port = BBBNames.UART1;
         params.Baud = System.getenv("BAUD") != null ? Integer.parseInt(System.getenv("BAUD")) : 9600;
         return params;

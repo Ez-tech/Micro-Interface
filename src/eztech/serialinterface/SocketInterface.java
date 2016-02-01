@@ -18,20 +18,22 @@ public class SocketInterface extends SerialInterface {
 
     Socket socket;
     static final int MACHINE_SERVER_PORT = 8080;
-    static final String MACHINE_SERVER_IP = "192.168.1.101";
+    static final String MACHINE_SERVER_IP = "192.168.0.101";
 
     public SocketInterface() {
-        msgbundelled = true;
+        super(true, true);
         buffredTransmitter.setChecksum(false);
-        msgBuffered = true;
     }
 
     @Override
-    public void connectToPort(SerialPortParamters params) throws ConnectionFailedException {
+    public void connectToPort(ConnectionParamters params) throws ConnectionFailedException {
         try {
             socket = new Socket(MACHINE_SERVER_IP, MACHINE_SERVER_PORT);
+            socket.setKeepAlive(true);
             out = socket.getOutputStream();
             in = socket.getInputStream();
+            socket.setOOBInline(true);
+            socket.setPerformancePreferences(1, 2, 0);
             new Thread(() -> {
                 while (socket.isConnected()) {
                     try {
@@ -63,10 +65,4 @@ public class SocketInterface extends SerialInterface {
             System.err.println("Error Close");
         }
     }
-
-    @Override
-    public SerialPortParamters getConfigrations() {
-        return null;
-    }
-
 }

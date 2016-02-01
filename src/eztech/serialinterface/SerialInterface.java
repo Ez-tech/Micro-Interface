@@ -13,10 +13,7 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.List;
-import java.util.logging.FileHandler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
+import java.util.logging.*;
 
 /**
  *
@@ -39,13 +36,17 @@ public abstract class SerialInterface {
     protected InputStream in;
     protected boolean connected = false, busy = false;
     private MicroHandler microHandler;
-    BuffredTransmitter buffredTransmitter;
+    BufferedTransmitter buffredTransmitter;
     HashMap<Byte, Byte> slaveMessages = new HashMap<>();
     Logger logger;
-    protected boolean msgBuffered, doubleBuffred, msgbundelled;
+    protected final boolean msgBuffered, msgbundelled;
 
-    public SerialInterface() {
-        buffredTransmitter = new BuffredTransmitter(this);
+    public SerialInterface(boolean msgBuffered, boolean msgbundelled) {
+        this.msgBuffered = msgBuffered;
+        this.msgbundelled = msgbundelled;
+        if (msgBuffered) {
+            buffredTransmitter = new BufferedTransmitter(this);
+        }
         try {
             logger = Logger.getLogger(this.getClass().getName());
             FileHandler fh = new FileHandler("logs/" + this.getClass().getName() + ".log", true);
@@ -58,13 +59,19 @@ public abstract class SerialInterface {
         }
     }
 
-    public abstract void connectToPort(SerialPortParamters params) throws ConnectionFailedException;
+    public SerialInterface() {
+        this(false, false);
+    }
+
+    public abstract void connectToPort(ConnectionParamters params) throws ConnectionFailedException;
 
     public abstract List<String> getAvailablePorts();
 
     public abstract void disconnect();
 
-    public abstract SerialPortParamters getConfigrations();
+    public ConnectionParamters getConfigrations() {
+        return new ConnectionParamters(System.getProperties());
+    }
 
     public void sendMessage(Message msg) {
         send(msg.toByteArray());
@@ -122,9 +129,10 @@ public abstract class SerialInterface {
         try {
             while (in.available() > 0) {
                 byte header = (byte) in.read();
-                if (header == ACKNOWLEDGE) {
+                if (header == ACKNOWLEDGE && msgBuffered) {
                     byte b = (byte) in.read();
                     buffredTransmitter.setAcknowledge(!(b == 0));
+                    System.out.println("ACKNOWLEDGE");
                 } else if (slaveMessages.containsKey(header)) {
                     Message msg = new Message(header, slaveMessages.get(header));
                     if (msg.hasBody()) {
@@ -139,10 +147,9 @@ public abstract class SerialInterface {
                 } else {
                     msgBuffer.append((char) header);
                 }
-                Thread.sleep(1);
             }
             System.out.print(msgBuffer.toString());
-        } catch (IOException | InterruptedException ex) {
+        } catch (Exception ex) {
             logger.log(Level.SEVERE, null, ex);
         }
     }
