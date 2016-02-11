@@ -8,16 +8,14 @@ package eztech.serialinterface;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
  * @author yami
  */
-public class BuffredTransmitter extends Thread {
+public class BufferedTransmitter extends Thread {
 
-    static int BUFFER_MAX_SIZE = 250;
+    static int BUFFER_MAX_SIZE = 1400;
     static int BUFFER_ACTUAL_MAX_SIZE = BUFFER_MAX_SIZE - 10;
     final static byte MESSAGE_START = '@';
     final SerialInterface si;
@@ -25,12 +23,12 @@ public class BuffredTransmitter extends Thread {
     boolean checksum;
     volatile Boolean acknowledged = false;
 
-    public BuffredTransmitter(SerialInterface si) {
+    public BufferedTransmitter(SerialInterface si) {
         this(si, false);
     }
 
-    public BuffredTransmitter(SerialInterface si, boolean checksum) {
-        super("Buffred Transmitter");
+    public BufferedTransmitter(SerialInterface si, boolean checksum) {
+        super("Buffered Transmitter");
         this.si = si;
         this.checksum = checksum;
         start();
@@ -47,7 +45,7 @@ public class BuffredTransmitter extends Thread {
         }
     }
 
-    void routine() throws InterruptedException {
+    void routine() throws Exception {
         synchronized (this) {
             while (!dataBuffer.isEmpty()) {
                 short dataLength = 0, messages = 0;
@@ -61,17 +59,19 @@ public class BuffredTransmitter extends Thread {
                     addCheckSumHeader(msgBuffer, messagesToSend);
                 }
                 messagesToSend.stream().forEach((msg) -> msgBuffer.put(msg));
+                dataBuffer.removeAll(dataBuffer.subList(0, messages));
                 acknowledged = false;
-                while (!acknowledged) {
+                if (!acknowledged) {
                     si.directSend(msgBuffer.array());
-                    wait();
-                }
-                for (int i = 0; i < messages; i++) {
-                    dataBuffer.remove(0);
+                    if (!dataBuffer.isEmpty()) {
+                        wait();
+                    }else{
+                        wait(100);
+                    }
                 }
             }
         }
-        if(dataBuffer.isEmpty()){
+        if (dataBuffer.isEmpty()) {
             sleep(100);
         }
     }
