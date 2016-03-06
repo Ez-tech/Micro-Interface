@@ -8,14 +8,12 @@ package eztech.serialinterface;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
  * @author yami
  */
-public class BuffredTransmitter extends Thread {
+public class BufferedTransmitter extends Thread {
 
     static int BUFFER_MAX_SIZE = 250;
     static int BUFFER_ACTUAL_MAX_SIZE = BUFFER_MAX_SIZE - 10;
@@ -25,11 +23,11 @@ public class BuffredTransmitter extends Thread {
     boolean checksum;
     volatile Boolean acknowledged = false;
 
-    public BuffredTransmitter(SerialInterface si) {
+    public BufferedTransmitter(SerialInterface si) {
         this(si, false);
     }
 
-    public BuffredTransmitter(SerialInterface si, boolean checksum) {
+    public BufferedTransmitter(SerialInterface si, boolean checksum) {
         super("Buffred Transmitter");
         this.si = si;
         this.checksum = checksum;

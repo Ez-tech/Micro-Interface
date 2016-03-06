@@ -19,13 +19,13 @@ import static org.junit.Assert.*;
  *
  * @author yami
  */
-public class BuffredTransmitterTest {
+public class BufferedTransmitterTest {
 
     ArrayList<Byte> in, out;
     SerialInterface si;
     BufferedTransmitter instance;
 
-    public BuffredTransmitterTest() {
+    public BufferedTransmitterTest() {
     }
 
     @Before

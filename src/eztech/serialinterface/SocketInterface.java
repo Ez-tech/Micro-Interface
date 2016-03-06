@@ -7,6 +7,7 @@ package eztech.serialinterface;
 
 import eztech.serialinterface.exceptions.ConnectionFailedException;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.List;
 
@@ -15,11 +16,11 @@ import java.util.List;
  * @author yami
  */
 public class SocketInterface extends SerialInterface {
-
+    
     Socket socket;
     static final int MACHINE_SERVER_PORT = 8080;
-    static final String MACHINE_SERVER_IP = "192.168.0.101";
-
+    static final String MACHINE_SERVER_IP = "192.168.1.101";
+    
     public SocketInterface() {
         super(true, true);
         buffredTransmitter.setChecksum(false);
@@ -28,7 +29,8 @@ public class SocketInterface extends SerialInterface {
     @Override
     public void connectToPort(ConnectionParamters params) throws ConnectionFailedException {
         try {
-            socket = new Socket(MACHINE_SERVER_IP, MACHINE_SERVER_PORT);
+            socket = new Socket();
+            socket.connect(new InetSocketAddress(params.getEthernetIP(), params.getEthernetPort()), 200);
             socket.setKeepAlive(true);
             out = socket.getOutputStream();
             in = socket.getInputStream();
@@ -51,12 +53,12 @@ public class SocketInterface extends SerialInterface {
             throw new ConnectionFailedException(ex);
         }
     }
-
+    
     @Override
     public List<String> getAvailablePorts() {
         return null;
     }
-
+    
     @Override
     public void disconnect() {
         try {

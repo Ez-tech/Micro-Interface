@@ -10,6 +10,10 @@ import gnu.io.CommPortIdentifier;
 import gnu.io.SerialPort;
 import gnu.io.SerialPortEvent;
 import gnu.io.SerialPortEventListener;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -21,6 +25,32 @@ import java.util.logging.Level;
  */
 public class RxTxISerial extends SerialInterface implements SerialPortEventListener {
 
+    static final String RXTX_LIB = "rxtxSerial";
+
+    static {
+        StringBuilder srclibname = new StringBuilder(RXTX_LIB);
+        StringBuilder distlibname = new StringBuilder(RXTX_LIB);
+        if (System.getProperty("os.arch").contains("64")) {
+            srclibname.append("x64");
+        } else {
+            srclibname.append("x86");
+        }
+        if (System.getProperty("os.name").contains("Windows")) {
+            srclibname.append(".dll");
+            distlibname.append(".dll");
+        } else {
+            srclibname.append(".so");
+            distlibname.append(".so");
+        }
+        try {
+            Files.copy(new File(srclibname.toString()).toPath(),
+                    new File(distlibname.toString()).toPath(),
+                    StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException ex) {
+            System.out.println(ex.getMessage());
+        }
+        System.out.println(srclibname);
+    }
     SerialPort serialPort;
 
     public RxTxISerial() {

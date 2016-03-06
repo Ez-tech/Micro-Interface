@@ -132,7 +132,7 @@ public abstract class SerialInterface {
                 if (header == ACKNOWLEDGE && msgBuffered) {
                     byte b = (byte) in.read();
                     buffredTransmitter.setAcknowledge(!(b == 0));
-                    System.out.println("ACKNOWLEDGE");
+                    System.out.println("Ack");
                 } else if (slaveMessages.containsKey(header)) {
                     Message msg = new Message(header, slaveMessages.get(header));
                     if (msg.hasBody()) {
