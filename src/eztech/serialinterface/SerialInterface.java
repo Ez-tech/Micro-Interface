@@ -23,15 +23,6 @@ public abstract class SerialInterface {
 
     public static final byte ACKNOWLEDGE = 0x55;
 
-    private static byte[] toByteArray(int... numbers) {
-        byte[] buffer = new byte[numbers.length * Integer.BYTES];
-        for (int i = 0; i < numbers.length; i++) {
-            byte[] bytes = ByteBuffer.allocate(Integer.BYTES).putInt(numbers[i]).array();
-            System.arraycopy(bytes, 0, buffer, i * Integer.BYTES, bytes.length);
-        }
-        return buffer;
-    }
-
     protected OutputStream out;
     protected InputStream in;
     protected boolean connected = false, busy = false;

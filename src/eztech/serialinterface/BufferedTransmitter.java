@@ -28,7 +28,7 @@ public class BufferedTransmitter extends Thread {
     }
 
     public BufferedTransmitter(SerialInterface si, boolean checksum) {
-        super("Buffred Transmitter");
+        super("Buffered Transmitter");
         this.si = si;
         this.checksum = checksum;
         start();
